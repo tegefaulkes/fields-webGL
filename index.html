@@ -52,19 +52,35 @@ mat4 m = mat4(
 
 float dist(vec2 start, vec2 fin){
     vec2 delta = fin - start;
-    return sqrt(pow(delta.x, 2)+pow(delta.y, 2))
+    return sqrt(pow(delta.x, 2.0)+pow(delta.y, 2.0));
 }
 
-float abs
+float gravityIntensity(float mass, float dist){
+    float G = 6.67408 * pow(10.0, -11.0);
+    return (G * mass) / pow(dist, 2.0);
+}
+
+vec4 absu(vec4 col){
+    float abval = 1.0 - sqrt(pow(col.r,2.0) + pow(col.g,2.0) + pow(col.b,2.0));
+    return vec4(abval, abval, abval, 1.0);
+}
+
+vec2 offset(vec2 start, vec2 onePixel, float x, float y){
+    return start + vec2(x,y) * onePixel;
+}
 
 void main() {
 
     vec2 onePixel = vec2(1.0, 1.0) / u_textureSize;
     // Look up a color from the texture.
-    gl_FragColor = (
-        texture2D(u_image, v_texCoord) +
-        texture2D(u_image, v_texCoord* vec2(10000.0,10000.0) + vec2(onePixel.x, 0.0)) +
-        texture2D(u_image, v_texCoord + vec2(-onePixel.x, 0.0))) / 3.0;
+    vec4 colorSum = vec4(0.0, 0.0, 0.0, 0.0);
+    for (float x = -1.0; x <= 1.0; x += 1.0) {
+        for (float y = -1.0; y <= 1.0; y += 1.0) {
+            colorSum += absu(texture2D(u_image, offset(v_texCoord, onePixel, x, y)));
+        }
+    }
+
+    gl_FragColor =  colorSum / 9.0;
 }
 </script><!--fragment shader code-->
 <script>
